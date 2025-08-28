@@ -159,8 +159,13 @@ function onHit(raw){
     setCenterMessage(`${keyText} 좀만 힘내세요`);
     crossfadeTo(VIDEO_SOURCES.stage2);
   } else if (k === 'DEER') {
-    setCenterMessage(`우와 모두 찾았어요!!\n잘했어요!`);
+    setCenterMessage(`${keyText} 거의 다 왔어요`);
     crossfadeTo(VIDEO_SOURCES.stage3);
+  }
+
+  // 3개 모두 찾았을 때만 완료 처리
+  if (isCompleted()) {
+    setCenterMessage(`우와 모두 찾았어요!!\n잘했어요!`);
     stopCamera();
   }
 }
