@@ -1,7 +1,8 @@
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color:#fff; background:#000; }
 
 /* 배경 비디오 전체화면 */
-.bgVideo { position: fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-1; background:#000; }
+.bgVideo { position: fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; background:#000; transition: opacity .6s ease; opacity:1; }
+.bgVideo.hidden { opacity:0; }
 
 /* 상단 바 */
 .topBar { position: fixed; top:0; left:0; right:0; height:60px; display:flex; align-items:center; padding:0 16px; background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0)); z-index:10; }
@@ -14,6 +15,7 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; marg
 
 /* 가운데 영역 */
 .center { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 160px); gap:16px; padding:0 20px; text-align:center; }
+.topBox { position: fixed; left:0; right:0; top:72px; display:flex; justify-content:center; z-index:5; }
 .headline { margin:0; font-size:clamp(20px, 3.8vw, 40px); text-shadow:0 2px 8px rgba(0,0,0,.6); }
 
 /* 하단 버튼 영역 */
@@ -33,6 +35,7 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; marg
 .items { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
 .items li { padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.08); font-size:14px; }
 .successMsg { margin-top:10px; font-weight:700; font-size:20px; color:#aef5a0; }
+.centerMsg { font-size:clamp(18px, 3.2vw, 34px); text-shadow:0 2px 8px rgba(0,0,0,.6); white-space:pre-line; }
 
 /* 기존 숨김 미리보기 비디오(카메라) */
 .hiddenPreview {

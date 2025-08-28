@@ -5,16 +5,16 @@ const TARGET_FPS = 15;             // 스캔 빈도(대략)
 const VIBRATE_OK = 25;             // 스캔 피드백(ms)
 
 // ===== 공용 요소 =====
-const bgVideo = document.getElementById('bgVideo');
+const bgVideoA = document.getElementById('bgVideoA');
+const bgVideoB = document.getElementById('bgVideoB');
 const pagesRoot = document.getElementById('pages');
 const banner  = document.getElementById('banner');
 
-// ===== Page3 요소 =====
+// ===== Page3/4 요소 =====
 const video   = document.getElementById('qrVideo');
 const uiStart = document.getElementById('uiStart');
-const uiStop  = document.getElementById('uiStop');
 const itemsUl = document.getElementById('items');
-const successMsg = document.getElementById('successMsg');
+const centerMsg = document.getElementById('centerMsg');
 
 // ===== 상태 =====
 let stream = null;
@@ -27,18 +27,37 @@ const offCanvas = document.createElement('canvas');
 const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
 
 function setBanner(msg){ if (banner) banner.textContent = msg; }
+function setCenterMessage(text){ if (centerMsg) centerMsg.textContent = text || ''; }
 
-// === 배경 비디오 소스(필요시 이 경로를 프로젝트에 맞게 교체) ===
-try {
-  // 비디오 파일이 없을 수 있어도 에러 없이 진행
-  bgVideo.src = 'background.mp4';
-} catch(_) {}
+// === 배경 비디오 소스 ===
+const VIDEO_SOURCES = {
+  init: 'background.mp4',
+  stage1: 'background1.mp4',
+  stage2: 'background2.mp4',
+  stage3: 'background3.mp4',
+};
+let activeLayer = 'A';
+function setVideoSource(el, src){ if (el && src) { el.src = src; try { el.play(); } catch(_) {} } }
+setVideoSource(bgVideoA, VIDEO_SOURCES.init);
+setVideoSource(bgVideoB, VIDEO_SOURCES.init);
+
+function crossfadeTo(src){
+  const show = activeLayer === 'A' ? bgVideoB : bgVideoA;
+  const hide = activeLayer === 'A' ? bgVideoA : bgVideoB;
+  setVideoSource(show, src);
+  // 페이드
+  hide.classList.add('hidden');
+  show.classList.remove('hidden');
+  activeLayer = activeLayer === 'A' ? 'B' : 'A';
+}
 
 // ===== 네비게이션 =====
 function resetState(){
   collected = new Set();
   renderItems();
-  if (successMsg) successMsg.hidden = true;
+  setCenterMessage('');
+  // 초기 배경으로 복귀
+  crossfadeTo(VIDEO_SOURCES.init);
 }
 
 function goto(id){
@@ -72,7 +91,6 @@ async function startCamera(){
     await video.play();
     running = true;
     if (uiStart) uiStart.disabled = true;
-    if (uiStop) uiStop.disabled  = false;
     setBanner('아이템을 찾아보세요');
     scanLoop();
   } catch(e) {
@@ -84,7 +102,6 @@ function stopCamera(){
   running = false;
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   if (uiStart) uiStart.disabled = false;
-  if (uiStop) uiStop.disabled = true;
 }
 
 function getKeyFromQR(raw){
@@ -113,12 +130,21 @@ function onHit(raw){
   if (collected.size !== sizeBefore && navigator.vibrate) navigator.vibrate(VIBRATE_OK);
   renderItems();
 
-  if (isCompleted()){
+  // 동적 메시지 & 배경 전환
+  const keyText = `${k}`;
+  const count = collected.size;
+  if (count === 1) {
+    setCenterMessage(`${keyText} 잘 찾았어요`);
+    crossfadeTo(VIDEO_SOURCES.stage1);
+  } else if (count === 2) {
+    setCenterMessage(`${keyText} 좀만 힘내세요`);
+    crossfadeTo(VIDEO_SOURCES.stage2);
+  } else if (isCompleted()) {
+    setCenterMessage(`우와 모두 찾았어요!!\n잘했어요!`);
+    crossfadeTo(VIDEO_SOURCES.stage3);
     stopCamera();
-    setBanner('잘했어요');
-    if (successMsg) successMsg.hidden = false;
   } else {
-    setBanner(`좋아요! 계속 찾아보세요 (${collected.size}/3)`);
+    setCenterMessage('');
   }
 }
 
