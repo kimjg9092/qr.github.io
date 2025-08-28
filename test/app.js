@@ -31,21 +31,39 @@ function setCenterMessage(text){ if (centerMsg) centerMsg.textContent = text || 
 
 // === 배경 비디오 소스 ===
 const VIDEO_SOURCES = {
-  init: 'background.mp4',
-  stage1: 'background1.mp4',
-  stage2: 'background2.mp4',
-  stage3: 'background3.mp4',
+  init: 'background.mp4',    // 초기 배경 (Start까지)
+  stage0: 'background0.mp4', // Start 후 0번 영상
+  stage1: 'background1.mp4', // SQUIRREL 성공 후 1번 영상
+  stage2: 'background2.mp4', // RABBIT 성공 후 2번 영상
+  stage3: 'background3.mp4', // DEER 성공 후 3번 영상
 };
 let activeLayer = 'A';
-function setVideoSource(el, src){ if (el && src) { el.src = src; try { el.play(); } catch(_) {} } }
-setVideoSource(bgVideoA, VIDEO_SOURCES.init);
-setVideoSource(bgVideoB, VIDEO_SOURCES.init);
+let currentVideo = 'init';
+
+function setVideoSource(el, src){ 
+  if (el && src) { 
+    el.src = src; 
+    try { el.play(); } catch(_) {} 
+  } 
+}
+
+// 모든 비디오 미리 로드
+function preloadVideos(){
+  setVideoSource(bgVideoA, VIDEO_SOURCES.init);
+  setVideoSource(bgVideoB, VIDEO_SOURCES.init);
+}
 
 function crossfadeTo(src){
+  if (currentVideo === src) return; // 같은 영상이면 전환 안함
+  
   const show = activeLayer === 'A' ? bgVideoB : bgVideoA;
   const hide = activeLayer === 'A' ? bgVideoA : bgVideoB;
+  
+  // 새 영상 미리 로드 후 전환
   setVideoSource(show, src);
-  // 페이드
+  currentVideo = src;
+  
+  // 페이드 전환
   hide.classList.add('hidden');
   show.classList.remove('hidden');
   activeLayer = activeLayer === 'A' ? 'B' : 'A';
@@ -56,8 +74,10 @@ function resetState(){
   collected = new Set();
   renderItems();
   setCenterMessage('');
-  // 초기 배경으로 복귀
-  crossfadeTo(VIDEO_SOURCES.init);
+  // 초기 배경으로 복귀 (홈으로 갈 때)
+  if (currentVideo !== 'init') {
+    crossfadeTo(VIDEO_SOURCES.init);
+  }
 }
 
 function goto(id){
@@ -130,21 +150,18 @@ function onHit(raw){
   if (collected.size !== sizeBefore && navigator.vibrate) navigator.vibrate(VIBRATE_OK);
   renderItems();
 
-  // 동적 메시지 & 배경 전환
+  // 동적 메시지 & 배경 전환 (QR 성공 순서별)
   const keyText = `${k}`;
-  const count = collected.size;
-  if (count === 1) {
+  if (k === 'SQUIRREL') {
     setCenterMessage(`${keyText} 잘 찾았어요`);
     crossfadeTo(VIDEO_SOURCES.stage1);
-  } else if (count === 2) {
+  } else if (k === 'RABBIT') {
     setCenterMessage(`${keyText} 좀만 힘내세요`);
     crossfadeTo(VIDEO_SOURCES.stage2);
-  } else if (isCompleted()) {
+  } else if (k === 'DEER') {
     setCenterMessage(`우와 모두 찾았어요!!\n잘했어요!`);
     crossfadeTo(VIDEO_SOURCES.stage3);
     stopCamera();
-  } else {
-    setCenterMessage('');
   }
 }
 
@@ -203,5 +220,10 @@ document.addEventListener('visibilitychange', () => {
 if (uiStart) uiStart.addEventListener('click', () => {
   resetState();
   goto('page4');
+  // Start 버튼 클릭 시 0번 영상으로 전환
+  crossfadeTo(VIDEO_SOURCES.stage0);
   startCamera();
 });
+
+// 페이지 로드 시 비디오 미리 로드
+preloadVideos();
