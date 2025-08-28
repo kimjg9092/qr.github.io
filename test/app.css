@@ -1,0 +1,20 @@
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; }
+.container { max-width: 720px; margin: 0 auto; }
+h1 { margin: 0 0 8px 0; }
+.muted { color:#666; font-size:0.95em; margin-bottom:16px; }
+.controls { display:flex; gap:10px; align-items:center; margin:12px 0 16px; }
+button { padding:11px 18px; border-radius:10px; border:1px solid #bbb; background:#fff; cursor:pointer; }
+button:disabled { opacity:.5; cursor:not-allowed; }
+.status { padding:14px 16px; border-radius:10px; background:#f6f7fb; border:1px solid #e3e6ef; min-height:48px; display:flex; align-items:center; }
+.chips { margin-top:12px; }
+.pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef; border:1px solid #ccd; margin-right:6px; font-size:12px; }
+
+/* ▼ 비디오는 DOM에 남기되 렌더는 유지, 화면/레이아웃엔 0 공간 */
+.hiddenPreview {
+  opacity: 0;
+  width: 1px !important;
+  height: 1px !important;
+  position: fixed; top: -9999px; left: -9999px;
+  pointer-events: none;
+  /* display:none / visibility:hidden 은 피하세요(일부 iOS에서 프레임 정지 가능성) */
+}
