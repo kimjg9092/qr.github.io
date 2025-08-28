@@ -43,14 +43,20 @@
     <section id="page3" class="page">
       <div class="center">
         <button id="uiStart" class="cta">Start</button>
+      </div>
+      <div class="bottomRow">
+        <button class="navBtn home" data-goto="page1">홈</button>
+      </div>
+    </section>
 
+    <!-- Page 4 (Scanning & Items only) -->
+    <section id="page4" class="page">
+      <div class="center">
         <div id="itemBox" class="itemBox">
           <div class="itemsHeader">아이템</div>
           <ul id="items" class="items"></ul>
           <div id="successMsg" class="successMsg" hidden>잘했어요</div>
         </div>
-
-        <div id="banner" class="status">준비되었습니다.</div>
       </div>
 
       <!-- 카메라는 DOM에 남기되 완전 오프스크린/투명 -->
@@ -58,7 +64,6 @@
 
       <div class="bottomRow">
         <button class="navBtn home" data-goto="page1">홈</button>
-        <button id="uiStop" class="navBtn stop" disabled>중지</button>
       </div>
     </section>
   </main>

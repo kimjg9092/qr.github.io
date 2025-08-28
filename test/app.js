@@ -35,6 +35,12 @@ try {
 } catch(_) {}
 
 // ===== 네비게이션 =====
+function resetState(){
+  collected = new Set();
+  renderItems();
+  if (successMsg) successMsg.hidden = true;
+}
+
 function goto(id){
   const next = document.getElementById(id);
   if (!next) return;
@@ -42,6 +48,9 @@ function goto(id){
   stopCamera();
   for (const sec of pagesRoot.querySelectorAll('.page')) sec.classList.remove('current');
   next.classList.add('current');
+  if (id === 'page1') {
+    resetState();
+  }
 }
 
 pagesRoot.addEventListener('click', (e) => {
@@ -166,13 +175,7 @@ document.addEventListener('visibilitychange', () => {
 
 // Page3 버튼
 if (uiStart) uiStart.addEventListener('click', () => {
-  collected = new Set();
-  renderItems();
-  if (successMsg) successMsg.hidden = true;
-  setBanner('준비되었습니다.');
+  resetState();
+  goto('page4');
   startCamera();
-});
-if (uiStop) uiStop.addEventListener('click', () => {
-  stopCamera();
-  setBanner('중지되었습니다. 다시 시작하려면 Start');
 });
