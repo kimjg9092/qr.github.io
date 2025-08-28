@@ -1,20 +1,49 @@
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; }
-.container { max-width: 720px; margin: 0 auto; }
-h1 { margin: 0 0 8px 0; }
-.muted { color:#666; font-size:0.95em; margin-bottom:16px; }
-.controls { display:flex; gap:10px; align-items:center; margin:12px 0 16px; }
-button { padding:11px 18px; border-radius:10px; border:1px solid #bbb; background:#fff; cursor:pointer; }
-button:disabled { opacity:.5; cursor:not-allowed; }
-.status { padding:14px 16px; border-radius:10px; background:#f6f7fb; border:1px solid #e3e6ef; min-height:48px; display:flex; align-items:center; }
-.chips { margin-top:12px; }
-.pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef; border:1px solid #ccd; margin-right:6px; font-size:12px; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color:#fff; background:#000; }
 
-/* ▼ 비디오는 DOM에 남기되 렌더는 유지, 화면/레이아웃엔 0 공간 */
+/* 배경 비디오 전체화면 */
+.bgVideo { position: fixed; inset:0; width:100%; height:100%; object-fit:cover; z-index:-1; background:#000; }
+
+/* 상단 바 */
+.topBar { position: fixed; top:0; left:0; right:0; height:60px; display:flex; align-items:center; padding:0 16px; background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0)); z-index:10; }
+.topTitle { font-weight:700; font-size:20px; }
+
+/* 페이지 컨테이너 */
+.pages { position: relative; min-height:100vh; display:block; }
+.page { position: relative; min-height:100vh; display:none; padding-top:80px; padding-bottom:80px; }
+.page.current { display:block; }
+
+/* 가운데 영역 */
+.center { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 160px); gap:16px; padding:0 20px; text-align:center; }
+.headline { margin:0; font-size:clamp(20px, 3.8vw, 40px); text-shadow:0 2px 8px rgba(0,0,0,.6); }
+
+/* 하단 버튼 영역 */
+.bottomRow { position: fixed; left:0; right:0; bottom:20px; display:flex; justify-content:space-between; align-items:center; padding:0 20px; z-index:10; }
+.navBtn { padding:12px 18px; border-radius:999px; border:1px solid rgba(255,255,255,.5); background:rgba(0,0,0,.35); color:#fff; cursor:pointer; backdrop-filter: blur(6px); }
+.navBtn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* CTA */
+.cta { padding:14px 22px; font-size:18px; border-radius:12px; border:1px solid rgba(255,255,255,.6); background:rgba(0,0,0,.35); color:#fff; cursor:pointer; }
+
+/* 상태/배너 */
+.status { padding:12px 14px; border-radius:12px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.25); min-height:44px; display:flex; align-items:center; backdrop-filter: blur(6px); }
+
+/* 아이템 박스 */
+.itemBox { width:min(640px, 92%); background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.25); border-radius:14px; padding:10px; backdrop-filter: blur(6px); }
+.itemsHeader { font-weight:600; margin-bottom:6px; }
+.items { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+.items li { padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.08); font-size:14px; }
+.successMsg { margin-top:10px; font-weight:700; font-size:20px; color:#aef5a0; }
+
+/* 기존 숨김 미리보기 비디오(카메라) */
 .hiddenPreview {
   opacity: 0;
   width: 1px !important;
   height: 1px !important;
   position: fixed; top: -9999px; left: -9999px;
   pointer-events: none;
-  /* display:none / visibility:hidden 은 피하세요(일부 iOS에서 프레임 정지 가능성) */
+}
+
+@media (min-width: 768px){
+  .topBar { height:72px; }
+  .topTitle { font-size:24px; }
 }

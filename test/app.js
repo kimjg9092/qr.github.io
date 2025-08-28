@@ -1,14 +1,20 @@
 // ===== 설정 =====
 const REQUIRED_KEYS = new Set(['SQUIRREL','RABBIT','DEER']); // 스캔해야할 3종
-const SAMPLE_WIDTH = 640;          // 다운스케일 목표 가로(px) → 성능/정확도 밸런스
+const SAMPLE_WIDTH = 640;          // 다운스케일 목표 가로(px)
 const TARGET_FPS = 15;             // 스캔 빈도(대략)
 const VIBRATE_OK = 25;             // 스캔 피드백(ms)
 
-// ===== 요소 =====
-const video   = document.getElementById('qrVideo');
-const startBtn= document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
+// ===== 공용 요소 =====
+const bgVideo = document.getElementById('bgVideo');
+const pagesRoot = document.getElementById('pages');
 const banner  = document.getElementById('banner');
+
+// ===== Page3 요소 =====
+const video   = document.getElementById('qrVideo');
+const uiStart = document.getElementById('uiStart');
+const uiStop  = document.getElementById('uiStop');
+const itemsUl = document.getElementById('items');
+const successMsg = document.getElementById('successMsg');
 
 // ===== 상태 =====
 let stream = null;
@@ -20,24 +26,44 @@ let collected = new Set();
 const offCanvas = document.createElement('canvas');
 const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
 
-function setBanner(msg){ banner.textContent = msg; }
+function setBanner(msg){ if (banner) banner.textContent = msg; }
 
+// === 배경 비디오 소스(필요시 이 경로를 프로젝트에 맞게 교체) ===
+try {
+  // 비디오 파일이 없을 수 있어도 에러 없이 진행
+  bgVideo.src = 'background.mp4';
+} catch(_) {}
+
+// ===== 네비게이션 =====
+function goto(id){
+  const next = document.getElementById(id);
+  if (!next) return;
+  // 페이지 전환 시 카메라 안전 정지
+  stopCamera();
+  for (const sec of pagesRoot.querySelectorAll('.page')) sec.classList.remove('current');
+  next.classList.add('current');
+}
+
+pagesRoot.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-goto]');
+  if (!btn) return;
+  const id = btn.getAttribute('data-goto');
+  goto(id);
+});
+
+// ===== 카메라 로직 =====
 async function startCamera(){
   if (stream) return;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width:  { ideal: 1280 },      // 원본 해상도(브라우저가 맞춰줌)
-        height: { ideal: 720 }
-      },
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false
     });
     video.srcObject = stream;
     await video.play();
     running = true;
-    startBtn.disabled = true;
-    stopBtn.disabled  = false;
+    if (uiStart) uiStart.disabled = true;
+    if (uiStop) uiStop.disabled  = false;
     setBanner('아이템을 찾아보세요');
     scanLoop();
   } catch(e) {
@@ -48,8 +74,8 @@ async function startCamera(){
 function stopCamera(){
   running = false;
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  startBtn.disabled = false;
-  stopBtn.disabled = true;
+  if (uiStart) uiStart.disabled = false;
+  if (uiStop) uiStop.disabled = true;
 }
 
 function getKeyFromQR(raw){
@@ -59,6 +85,16 @@ function getKeyFromQR(raw){
   return v.toUpperCase();
 }
 
+function renderItems(){
+  if (!itemsUl) return;
+  itemsUl.innerHTML = '';
+  for (const key of collected) {
+    const li = document.createElement('li');
+    li.textContent = key;
+    itemsUl.appendChild(li);
+  }
+}
+
 function onHit(raw){
   const k = getKeyFromQR(raw);
   if (!REQUIRED_KEYS.has(k)) return;
@@ -66,10 +102,12 @@ function onHit(raw){
   const sizeBefore = collected.size;
   collected.add(k);
   if (collected.size !== sizeBefore && navigator.vibrate) navigator.vibrate(VIBRATE_OK);
+  renderItems();
 
   if (isCompleted()){
     stopCamera();
     setBanner('잘했어요');
+    if (successMsg) successMsg.hidden = false;
   } else {
     setBanner(`좋아요! 계속 찾아보세요 (${collected.size}/3)`);
   }
@@ -83,7 +121,7 @@ function isCompleted(){
 // rVFC가 있으면 정확한 프레임 경계에서 스캔
 const useRVFC = ('requestVideoFrameCallback' in HTMLVideoElement.prototype);
 
-function scanLoop(time){
+function scanLoop(){
   if (!running || !video.videoWidth) {
     scheduleNext();
     return;
@@ -94,7 +132,6 @@ function scanLoop(time){
   if (now - lastScanTs >= interval) {
     lastScanTs = now;
 
-    // 다운스케일 사이즈 계산
     const vw = video.videoWidth;
     const vh = video.videoHeight;
     const scale = Math.min(1, SAMPLE_WIDTH / vw);
@@ -103,17 +140,10 @@ function scanLoop(time){
 
     offCanvas.width = sw;
     offCanvas.height = sh;
-
-    // ROI가 필요하면 중앙부만 그리기(예: 80% 영역)
-    // const roi = { sx: vw*0.1, sy: vh*0.1, sw: vw*0.8, sh: vh*0.8 };
-    // ctx.drawImage(video, roi.sx, roi.sy, roi.sw, roi.sh, 0, 0, sw, sh);
     ctx.drawImage(video, 0, 0, sw, sh);
 
     const img = ctx.getImageData(0, 0, sw, sh);
-    const res = jsQR(img.data, img.width, img.height, {
-      inversionAttempts: 'dontInvert' // 조명에 따라 'attemptBoth'로 바꿀 수 있음(조금 느려짐)
-    });
-
+    const res = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
     if (res && res.data) onHit(res.data);
   }
 
@@ -123,9 +153,9 @@ function scanLoop(time){
 function scheduleNext(){
   if (!running) return;
   if (useRVFC) {
-    video.requestVideoFrameCallback(scanLoop);
+    video.requestVideoFrameCallback(() => scanLoop());
   } else {
-    requestAnimationFrame(scanLoop);
+    requestAnimationFrame(() => scanLoop());
   }
 }
 
@@ -134,12 +164,15 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') stopCamera();
 });
 
-// 버튼
-startBtn.addEventListener('click', () => {
+// Page3 버튼
+if (uiStart) uiStart.addEventListener('click', () => {
   collected = new Set();
+  renderItems();
+  if (successMsg) successMsg.hidden = true;
+  setBanner('준비되었습니다.');
   startCamera();
 });
-stopBtn.addEventListener('click', () => {
+if (uiStop) uiStop.addEventListener('click', () => {
   stopCamera();
   setBanner('중지되었습니다. 다시 시작하려면 Start');
 });

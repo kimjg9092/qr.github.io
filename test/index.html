@@ -3,32 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>QR 미션</title>
+  <title>생명의 숲</title>
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>QR 미션</h1>
-    <p class="muted">Start를 누르면 카메라가 켜지지만 화면에는 표시되지 않습니다.</p>
+  <!-- 배경 비디오 -->
+  <video id="bgVideo" class="bgVideo" playsinline autoplay muted loop></video>
 
-    <!-- 카메라는 DOM에 남기되 완전 오프스크린/투명 -->
-    <video id="qrVideo" class="hiddenPreview" playsinline autoplay muted></video>
+  <!-- 상단 고정 헤더 -->
+  <header class="topBar">
+    <div class="topTitle">생명의 숲</div>
+  </header>
 
-    <div class="controls">
-      <button id="startBtn">Start</button>
-      <button id="stopBtn" disabled>Stop</button>
-    </div>
+  <!-- 페이지 컨테이너 -->
+  <main id="pages" class="pages">
+    <!-- Page 1 -->
+    <section id="page1" class="page current">
+      <div class="center">
+        <h1 class="headline">생명의 숲에 오신설 환영해요!</h1>
+      </div>
+      <div class="bottomRow">
+        <div></div>
+        <button class="navBtn next" data-goto="page2" aria-label=">">&gt;</button>
+      </div>
+    </section>
 
-    <div id="banner" class="status">준비되었습니다.</div>
+    <!-- Page 2 -->
+    <section id="page2" class="page">
+      <div class="center">
+        <h1 class="headline">설명 입니다</h1>
+      </div>
+      <div class="bottomRow">
+        <button class="navBtn prev" data-goto="page1" aria-label="<">&lt;</button>
+        <button class="navBtn next" data-goto="page3" aria-label=">">&gt;</button>
+      </div>
+    </section>
 
-    <div class="chips">
-      <span class="pill">필수: SQUIRREL</span>
-      <span class="pill">RABBIT</span>
-      <span class="pill">DEER</span>
-    </div>
-  </div>
+    <!-- Page 3 (QR) -->
+    <section id="page3" class="page">
+      <div class="center">
+        <button id="uiStart" class="cta">Start</button>
 
-  <!-- jsQR (CDN). 외부 차단되면 로컬로 jsqr.min.js를 배포해 같은 경로로 바꿔주세요. -->
+        <div id="itemBox" class="itemBox">
+          <div class="itemsHeader">아이템</div>
+          <ul id="items" class="items"></ul>
+          <div id="successMsg" class="successMsg" hidden>잘했어요</div>
+        </div>
+
+        <div id="banner" class="status">준비되었습니다.</div>
+      </div>
+
+      <!-- 카메라는 DOM에 남기되 완전 오프스크린/투명 -->
+      <video id="qrVideo" class="hiddenPreview" playsinline autoplay muted></video>
+
+      <div class="bottomRow">
+        <button class="navBtn home" data-goto="page1">홈</button>
+        <button id="uiStop" class="navBtn stop" disabled>중지</button>
+      </div>
+    </section>
+  </main>
+
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="app.js" defer></script>
 </body>
